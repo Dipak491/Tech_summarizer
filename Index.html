@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevSummary Pro | AI Architect</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #0f172a; color: #f8fafc; }
+        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+    <div class="max-w-2xl w-full glass p-8 rounded-2xl shadow-2xl">
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl font-bold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
+                DevSummary Pro
+            </h1>
+            <p class="text-slate-400 mt-2">Convert casual tasks into architectural documentation.</p>
+        </header>
+
+        <div class="space-y-6">
+            <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">OpenAI API Key</label>
+                <input type="password" id="apiKey" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="sk-...">
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Input Task Description</label>
+                <textarea id="userInput" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 h-32 focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="e.g., Fixed the slow loading on the checkout page..."></textarea>
+            </div>
+
+            <button onclick="generate()" id="btn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg shadow-lg transform active:scale-95 transition">
+                Generate Technical Summary
+            </button>
+
+            <div id="outputContainer" class="hidden">
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Technical Output</label>
+                <div id="output" class="bg-black p-4 rounded-lg border border-slate-700 font-mono text-sm leading-relaxed text-emerald-400"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function generate() {
+            const key = document.getElementById('apiKey').value;
+            const input = document.getElementById('userInput').value;
+            const out = document.getElementById('output');
+            const outCont = document.getElementById('outputContainer');
+            const btn = document.getElementById('btn');
+
+            if (!key || !input) return alert("Missing Key or Input");
+
+            btn.innerText = "Processing...";
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${key}`
+                    },
+                    body: JSON.stringify({
+                        model: "gpt-3.5-turbo",
+                        messages: [{
+                            role: "system", 
+                            content: "You are an expert technical writer. Convert the user's input into a professional 'Work Completed' summary. Use industry terms like 'Refactored', 'Optimized', 'Resolved', and 'Implemented'. Output in clean Markdown bullet points."
+                        }, { role: "user", content: input }]
+                    })
+                });
+
+                const data = await response.json();
+                out.innerText = data.choices[0].message.content;
+                outCont.classList.remove('hidden');
+            } catch (err) {
+                out.innerText = "Error: " + err.message;
+                outCont.classList.remove('hidden');
+            } finally {
+                btn.innerText = "Generate Technical Summary";
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
